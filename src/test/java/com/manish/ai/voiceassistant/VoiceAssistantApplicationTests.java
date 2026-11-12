@@ -1,4 +1,4 @@
-package com.manish.ai.voice_assistant;
+package com.manish.ai.voiceassistant;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

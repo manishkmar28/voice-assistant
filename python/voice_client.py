@@ -1,7 +1,12 @@
 import speech_recognition as sr
 import requests
 import pyttsx3
+import sys
 import time
+
+for stream in (sys.stdout, sys.stderr):
+    if hasattr(stream, "reconfigure"):
+        stream.reconfigure(encoding="utf-8", errors="replace")
 
 # ===============================
 # CONFIG
@@ -10,14 +15,14 @@ API_URL = "http://localhost:8080/voice/command"
 
 # 👉 MULTI WAKE-UP LANGUAGE (Natural)
 WAKE_WORDS = [
-    "hey raj",
-    "hello raj",
-    "hi raj",
-    "raj",
-    "sun raj",
-    "are raj",
-    "hey raaj",
-    "hey rage"
+    "hey friday",
+    "hello friday",
+    "hi friday",
+    "friday",
+    "sun friday",
+    "are friday",
+    "hey fri day",
+    "hey freddy"
 ]
 
 # ===============================
@@ -41,9 +46,17 @@ def speak(text):
 # ===============================
 recognizer = sr.Recognizer()
 mic = sr.Microphone()
+http = requests.Session()
+last_command = None
+last_command_at = 0.0
+DUPLICATE_COMMAND_WINDOW = 4.0
 
-print("🎙️ Raj AI Assistant started")
-speak("मैं तैयार हूँ, बोलिए राज")
+# Calibrate once at startup; doing this on every loop adds latency.
+with mic as source:
+    recognizer.adjust_for_ambient_noise(source, duration=0.5)
+
+print("🎙️ Friday AI Assistant started")
+speak("मैं तैयार हूँ, बोलिए Friday")
 
 # ===============================
 # MAIN LOOP
@@ -51,9 +64,8 @@ speak("मैं तैयार हूँ, बोलिए राज")
 while True:
     try:
         with mic as source:
-            recognizer.adjust_for_ambient_noise(source, duration=0.5)
             print("\n🎧 Listening...")
-            audio = recognizer.listen(source)
+            audio = recognizer.listen(source, timeout=1, phrase_time_limit=6)
 
         # Hindi + English mixed
         text = recognizer.recognize_google(audio, language="en-IN")
@@ -67,7 +79,7 @@ while True:
         wake_detected = False
         command = ""
 
-        for word in WAKE_WORDS:
+        for word in sorted(WAKE_WORDS, key=len, reverse=True):
             if word in text_lower:
                 wake_detected = True
                 command = text_lower.replace(word, "").strip()
@@ -81,28 +93,39 @@ while True:
         # NO COMMAND AFTER WAKE WORD
         # ===============================
         if command == "":
-            speak("हाँ राज, बताइए क्या करना है")
+            speak("हाँ Friday, बताइए क्या करना है")
+            continue
+
+        normalized_command = " ".join(command.lower().split()).strip(" .,!?;:")
+        now = time.monotonic()
+        if normalized_command == last_command and now - last_command_at < DUPLICATE_COMMAND_WINDOW:
+            print("⏭️ Duplicate command ignored")
             continue
 
         print("📤 Command:", command)
+        last_command = normalized_command
+        last_command_at = now
 
         # ===============================
         # SEND TO SPRING BOOT
         # ===============================
-        response = requests.get(
+        response = http.post(
             API_URL,
-            params={"text": command},
+            json={"text": command},
             timeout=5
         )
+        response.raise_for_status()
 
         reply = response.text
         print("🤖 AI Response:", reply)
 
         speak(reply)
-        time.sleep(0.4)
 
     except sr.UnknownValueError:
-        speak("माफ़ कीजिए, मैं समझ नहीं पाया")
+        print("⏭️ No clear speech detected")
+
+    except sr.WaitTimeoutError:
+        continue
 
     except requests.exceptions.ConnectionError:
         speak("सर्वर चालू नहीं है")

@@ -22,12 +22,7 @@ public class SystemUtil {
 
     public static void openChrome() {
         try {
-            String chromePath =
-                "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
-
-            Runtime.getRuntime().exec(
-                "cmd /c start \"\" \"" + chromePath + "\""
-            );
+            new ProcessBuilder("cmd.exe", "/c", "start", "", "chrome").start();
         } catch (IOException e) {
             throw new RuntimeException("Chrome open failed", e);
         }
@@ -49,11 +44,35 @@ public class SystemUtil {
         }
     }
 
+    public static void openWord() {
+        launchWindowsApp("winword", "Microsoft Word");
+    }
+
+    public static void openExcel() {
+        launchWindowsApp("excel", "Microsoft Excel");
+    }
+
+    public static void openPowerPoint() {
+        launchWindowsApp("powerpnt", "Microsoft PowerPoint");
+    }
+
+    public static void openPaint() {
+        launchWindowsApp("mspaint", "Paint");
+    }
+
+    public static void openEdge() {
+        launchWindowsApp("msedge", "Microsoft Edge");
+    }
+
+    public static void openFileExplorer() {
+        launchWindowsApp("explorer", "File Explorer");
+    }
+
     // ================= CLOSE =================
 
     public static void closeCalculator() {
         try {
-            Runtime.getRuntime().exec("taskkill /IM calc.exe /F");
+            new ProcessBuilder("taskkill", "/IM", "calc.exe", "/F").start();
         } catch (IOException e) {
             throw new RuntimeException("Calculator close failed", e);
         }
@@ -61,7 +80,7 @@ public class SystemUtil {
 
     public static void closeChrome() {
         try {
-            Runtime.getRuntime().exec("taskkill /IM chrome.exe /F");
+            new ProcessBuilder("taskkill", "/IM", "chrome.exe", "/F").start();
         } catch (IOException e) {
             throw new RuntimeException("Chrome close failed", e);
         }
@@ -69,9 +88,45 @@ public class SystemUtil {
 
     public static void closeNotepad() {
         try {
-            Runtime.getRuntime().exec("taskkill /IM notepad.exe /F");
+            new ProcessBuilder("taskkill", "/IM", "notepad.exe", "/F").start();
         } catch (IOException e) {
             throw new RuntimeException("Notepad close failed", e);
+        }
+    }
+
+    public static void closeWord() {
+        closeWindowsApp("WINWORD.EXE", "Microsoft Word");
+    }
+
+    public static void closeExcel() {
+        closeWindowsApp("EXCEL.EXE", "Microsoft Excel");
+    }
+
+    public static void closePowerPoint() {
+        closeWindowsApp("POWERPNT.EXE", "Microsoft PowerPoint");
+    }
+
+    public static void closePaint() {
+        closeWindowsApp("mspaint.exe", "Paint");
+    }
+
+    public static void closeEdge() {
+        closeWindowsApp("msedge.exe", "Microsoft Edge");
+    }
+
+    private static void launchWindowsApp(String appCommand, String appName) {
+        try {
+            new ProcessBuilder("cmd.exe", "/c", "start", "", appCommand).start();
+        } catch (IOException e) {
+            throw new RuntimeException(appName + " open failed", e);
+        }
+    }
+
+    private static void closeWindowsApp(String imageName, String appName) {
+        try {
+            new ProcessBuilder("taskkill", "/IM", imageName, "/F").start();
+        } catch (IOException e) {
+            throw new RuntimeException(appName + " close failed", e);
         }
     }
 }

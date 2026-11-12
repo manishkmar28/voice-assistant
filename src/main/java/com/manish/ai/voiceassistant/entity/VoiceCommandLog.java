@@ -11,14 +11,19 @@ public class VoiceCommandLog {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "command_text")
+    @Column(name = "command_text", length = 200)
     private String commandText;
 
-    @Column(name = "action_taken")
+    @Column(name = "normalized_command", length = 200)
+    private String normalizedCommand;
+
+    @Column(name = "action_taken", length = 40)
     private String actionTaken;
 
+    @Column(length = 30)
     private String status;
 
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @PrePersist
@@ -30,6 +35,10 @@ public class VoiceCommandLog {
 
     public void setCommandText(String commandText) {
         this.commandText = commandText;
+    }
+
+    public void setNormalizedCommand(String normalizedCommand) {
+        this.normalizedCommand = normalizedCommand;
     }
 
     public void setActionTaken(String actionTaken) {
